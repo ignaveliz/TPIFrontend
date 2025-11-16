@@ -1,6 +1,25 @@
 import Card from '../../shared/components/Card';
+import { useEffect, useState } from 'react';
+import { getProducts } from '../../products/services/list';
 
 function Home() {
+  const [total, setTotal ] = useState(0);
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await getProducts('', 'all', 1, 10);
+
+      if (error) throw error;
+
+      setTotal(data.total);
+
+    } catch (error) {
+      console.error(error);
+    };
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   return (
     <div
@@ -8,7 +27,7 @@ function Home() {
     >
       <Card>
         <h3>Productos</h3>
-        <p>Cantidad: #</p>
+        <p>{`Cantidad: ${total}`}</p>
       </Card>
 
       <Card>
