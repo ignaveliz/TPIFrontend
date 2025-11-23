@@ -1,16 +1,32 @@
 import Card from '../../shared/components/Card';
 import { useEffect, useState } from 'react';
 import { getProducts } from '../../products/services/list';
+import { listOrders } from '../../orders/services/list';
 
 function Home() {
-  const [total, setTotal ] = useState(0);
+  const [totalProducts, setTotalProducts ] = useState(0);
+  const [totalOrders, setTotalOrders ] = useState(0);
+
   const fetchProducts = async () => {
     try {
-      const { data, error } = await getProducts('', 'all', 1, 10);
+      const { data, error } = await getProducts('', '', 1, 10);
 
       if (error) throw error;
 
-      setTotal(data.total);
+      setTotalProducts(data.total);
+
+    } catch (error) {
+      console.error(error);
+    };
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const { data, error } = await listOrders();
+
+      if (error) throw error;
+
+      setTotalOrders(data.total);
 
     } catch (error) {
       console.error(error);
@@ -19,6 +35,7 @@ function Home() {
 
   useEffect(() => {
     fetchProducts();
+    fetchOrders();
   }, []);
 
   return (
@@ -27,12 +44,12 @@ function Home() {
     >
       <Card>
         <h3>Productos</h3>
-        <p>{`Cantidad: ${total}`}</p>
+        <p>{`Cantidad: ${totalProducts}`}</p>
       </Card>
 
       <Card>
         <h3>Ordenes</h3>
-        <p>Cantidad: #</p>
+        <p>{`Cantidad: ${totalOrders}`}</p>
       </Card>
     </div>
   );

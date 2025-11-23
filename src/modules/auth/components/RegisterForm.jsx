@@ -95,7 +95,11 @@ function RegisterForm() {
         type='password'
         {...register('password', {
           required: 'Contraseña es obligatoria',
-          minLength: { value: 6, message: 'Mínimo 6 caracteres' },
+          minLength: { value: 8, message: 'Mínimo 8 caracteres' },
+          pattern: {
+            value: /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/,
+            message: 'Debe tener al menos una mayúscula y un símbolo especial',
+          },
         })}
         error={errors.password?.message}
       />
