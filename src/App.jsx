@@ -9,6 +9,7 @@ import ListProductsPage from './modules/products/pages/ListProductsPage';
 import CreateProductPage from './modules/products/pages/CreateProductPage';
 import RegisterPage from './modules/auth/pages/RegisterPage';
 import UnauthorizedPage from './modules/auth/pages/UnauthorizedPage';
+import UserHomePage from './modules/home/pages/UserHomePage';
 
 function App() {
   const router = createBrowserRouter([
@@ -18,7 +19,7 @@ function App() {
       children: [
         {
           path: '/',
-          element: <>Listado de productos</>,
+          element: <UserHomePage />,
         },
         {
           path: '/cart',
