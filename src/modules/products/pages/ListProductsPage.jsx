@@ -41,7 +41,7 @@ function ListProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [status, pageSize, pageNumber]);
+  }, [searchTerm, status, pageSize, pageNumber]);
 
   const totalPages = Math.ceil(total / pageSize);
 

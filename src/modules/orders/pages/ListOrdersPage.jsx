@@ -39,7 +39,7 @@ function ListOrdersPage() {
     }
   };
 
-  useEffect(() => {
+  useEffect( () => {
     fetchOrders();
   }, [searchTerm, status, pageNumber, pageSize]);
 
