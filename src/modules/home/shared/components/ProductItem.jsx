@@ -1,0 +1,35 @@
+function ProductItem({ imageAspect = 'aspect-square' }) {
+  return (<>
+    {/* Placeholder de Imagen */}
+    <div className={`w-full bg-gray-200 rounded-lg mb-3 ${imageAspect} flex items-center justify-center`}>
+      <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    </div>
+
+    {/* Título */}
+    <h3 className="text-gray-700 font-medium text-sm mb-4">Text</h3>
+
+    {/* Fila de Precio y Controles */}
+    <div className="flex items-center justify-between">
+      <span className="font-bold text-gray-900">$0</span>
+
+      <div className="flex items-center gap-2">
+        {/* Contador */}
+        <div className="flex items-center gap-2">
+          <button className="text-gray-500 hover:text-black font-bold text-lg">-</button>
+          <span className="text-sm border px-2 rounded bg-white">0</span>
+          <button className="text-gray-500 hover:text-black font-bold text-lg">+</button>
+        </div>
+
+        {/* Botón Agregar */}
+        <button className="bg-purple-100 text-purple-700 hover:bg-purple-200 text-xs font-semibold px-3 py-1.5 rounded-md transition-colors">
+          Agregar
+        </button>
+      </div>
+    </div>
+  </>);
+
+}
+
+export default ProductItem;
