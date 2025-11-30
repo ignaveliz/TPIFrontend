@@ -1,4 +1,4 @@
-function ProductItem({ imageAspect = 'aspect-square' }) {
+function ProductItem({ imageAspect = 'aspect-square', product  }) {
   return (<>
     {/* Placeholder de Imagen */}
     <div className={`w-full bg-gray-200 rounded-lg mb-3 ${imageAspect} flex items-center justify-center`}>
@@ -8,11 +8,11 @@ function ProductItem({ imageAspect = 'aspect-square' }) {
     </div>
 
     {/* Título */}
-    <h3 className="text-gray-700 font-medium text-sm mb-4">Text</h3>
+    <h3 className="text-gray-700 font-medium text-sm mb-4">{product.name}</h3>
 
     {/* Fila de Precio y Controles */}
     <div className="flex items-center justify-between">
-      <span className="font-bold text-gray-900">$0</span>
+      <span className="font-bold text-gray-900">${product.currentUnitPrice}</span>
 
       <div className="flex items-center gap-2">
         {/* Contador */}

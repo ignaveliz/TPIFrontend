@@ -1,6 +1,6 @@
 import { instance } from '../../shared/api/axiosInstance';
 
-export const getProducts = async (search = null, status = null, pageNumber = 1, pageSize = 20 ) => {
+async function getProducts(search = null, status = null, pageNumber = 1, pageSize = 20 ) {
   const queryString = new URLSearchParams({
     search,
     status,
@@ -12,3 +12,13 @@ export const getProducts = async (search = null, status = null, pageNumber = 1, 
 
   return { data: response.data, error: null };
 };
+
+async function getAll()
+{
+
+  const response = await instance.get('api/products');
+
+  return { data: response.data, error: null };
+};
+
+export { getProducts, getAll };
