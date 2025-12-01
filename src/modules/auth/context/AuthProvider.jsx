@@ -15,14 +15,19 @@ function AuthProvider({ children }) {
     return localStorage.getItem('role');
   });
 
+  const [userID, setUserID] = useState(() => {
+    return localStorage.getItem('userID');
+  });
+
   const singout = () => {
     localStorage.clear();
     setRole(null);
     setIsAuthenticated(false);
+    setUserID(null);
   };
 
   const singin = async (username, password) => {
-    const { data, role, error } = await login(username, password);
+    const { data, role, userID, error } = await login(username, password);
 
     if (error) {
       return { error };
@@ -30,14 +35,16 @@ function AuthProvider({ children }) {
 
     localStorage.setItem('token', data);
     localStorage.setItem('role', role);
+    localStorage.setItem('userID', userID);
     setIsAuthenticated(true);
     setRole(role);
+    setUserID(userID);
 
-    return { error: null, role };
+    return { error: null, role, userID };
   };
 
   const signup = async (username, email, role, password) => {
-    const { data, error } = await register(username, email, role, password);
+    const { data, userID, error } = await register(username, email, role, password);
 
     if (error) {
       return { error };
@@ -45,10 +52,12 @@ function AuthProvider({ children }) {
 
     localStorage.setItem('token', data);
     localStorage.setItem('role', role);
+    localStorage.setItem('userID', userID);
     setIsAuthenticated(true);
     setRole(role);
+    setUserID(userID);
 
-    return { error: null, role };
+    return { error: null, role, userID };
   };
 
   return (
@@ -56,6 +65,7 @@ function AuthProvider({ children }) {
       value={ {
         isAuthenticated,
         role,
+        userID,
         signup,
         singin,
         singout,
