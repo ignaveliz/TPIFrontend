@@ -6,7 +6,7 @@ export const createOrder = async (orderData) => {
     shippingAddress: 'Calle Falsa 123',
     billingAddress: 'Calle Falsa 123',
     notes: '',
-    items: orderData.items.map(item => ({
+    orderItems: orderData.items.map(item => ({
       productId: item.id,
       quantity: item.quantity,
       unitPrice: item.currentUnitPrice,

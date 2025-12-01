@@ -3,8 +3,10 @@ import Header from '../shared/components/Header';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 
+// AJUSTA ESTA RUTA según donde hayas guardado el archivo del paso anterior
+import { createOrder } from '../../orders/services/createOrder';
+
 function CartPage() {
-  // 1. Inicializamos el estado leyendo la key "cart" del localStorage
   const [cartItems, setCartItems] = useState(() => {
     try {
       const storedCart = localStorage.getItem('cart');
@@ -17,23 +19,20 @@ function CartPage() {
     }
   });
 
-  // 2. Guardamos en localStorage cada vez que cartItems cambia (al borrar o cambiar cantidad)
+  // Estado para indicar que se está procesando la compra (loading)
+  const [isProcessing, setIsProcessing] = useState(false);
+
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Cálculos totales usando 'currentUnitPrice'
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = cartItems.reduce((acc, item) => acc + (item.currentUnitPrice * item.quantity), 0);
 
   const handleQuantity = (id, delta) => {
     setCartItems(current => current.map(item => {
       if (item.id === id) {
-        // Evitamos que baje de 1 (para borrar usamos el botón borrar)
         const newQuantity = Math.max(1, item.quantity + delta);
-
-        // Opcional: Si quieres validar contra el stock máximo disponible
-        // const limitQuantity = Math.min(newQuantity, item.stockQuantity);
 
         return { ...item, quantity: newQuantity };
       }
@@ -44,6 +43,49 @@ function CartPage() {
 
   const handleRemove = (id) => {
     setCartItems(current => current.filter(item => item.id !== id));
+  };
+
+  // --- NUEVA FUNCIÓN PARA FINALIZAR COMPRA ---
+  const handleFinalizePurchase = async () => {
+    // 1. Obtener UserID
+    const userId = localStorage.getItem('userID');
+
+    if (!userId) {
+      alert('Error: No se encontró el usuario. Por favor inicia sesión.');
+
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      alert('El carrito está vacío');
+
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // 2. Preparar los datos
+      const orderData = {
+        userId: userId,
+        items: cartItems, // Pasamos los items actuales del estado
+      };
+
+      // 3. Llamar a la API
+      await createOrder(orderData);
+
+      // 4. Éxito: Limpiar carrito y avisar
+      setCartItems([]); // Esto limpiará el localStorage automáticamente por el useEffect
+      console.log('¡Orden creada con éxito!');
+
+      // Aquí podrías redirigir al usuario, ej: navigate('/orders')
+
+    } catch (error) {
+      console.error('Error al crear la orden:', error);
+      console.log('Hubo un error al procesar tu compra.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -59,13 +101,9 @@ function CartPage() {
           <div className="lg:col-span-2 flex flex-col gap-4">
             {cartItems.map((item) => (
               <Card key={item.id} className="flex flex-col sm:flex-row justify-between items-center gap-4">
-
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-gray-800 mb-2">{item.name}</h3>
-
-                  {/* Mostramos el SKU o descripción si quieres */}
                   <p className="text-sm text-gray-400 mb-2">{item.description}</p>
-
                   <div className="text-gray-500 mb-1">
                     Precio unitario: ${item.currentUnitPrice.toLocaleString()}
                   </div>
@@ -78,7 +116,7 @@ function CartPage() {
                   <button
                     onClick={() => handleQuantity(item.id, -1)}
                     className="font-bold text-xl px-2 text-gray-600 hover:text-black disabled:opacity-30"
-                    disabled={item.quantity <= 1}
+                    disabled={item.quantity <= 1 || isProcessing}
                   >
                     −
                   </button>
@@ -89,8 +127,8 @@ function CartPage() {
 
                   <button
                     onClick={() => handleQuantity(item.id, 1)}
-                    className="font-bold text-xl px-2 text-gray-600 hover:text-black"
-                    // Podrías deshabilitar si superas el stock: disabled={item.quantity >= item.stockQuantity}
+                    className="font-bold text-xl px-2 text-gray-600 hover:text-black disabled:opacity-30"
+                    disabled={isProcessing}
                   >
                     +
                   </button>
@@ -99,6 +137,7 @@ function CartPage() {
                     variant="default"
                     className="ml-2"
                     onClick={() => handleRemove(item.id)}
+                    disabled={isProcessing}
                   >
                     Borrar
                   </Button>
@@ -126,8 +165,12 @@ function CartPage() {
               </div>
 
               <div className="mt-auto pt-4">
-                <Button className="w-full py-3 text-lg" disabled={cartItems.length === 0}>
-                  Finalizar Compra
+                <Button
+                  className="w-full py-3 text-lg"
+                  disabled={cartItems.length === 0 || isProcessing}
+                  onClick={handleFinalizePurchase} // <--- CLICK AQUÍ
+                >
+                  {isProcessing ? 'Procesando...' : 'Finalizar Compra'}
                 </Button>
               </div>
             </Card>
