@@ -1,15 +1,9 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import Button from '../../../shared/components/Button';
 
-function Header() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
+function Header({ searchTerm, setSearchTerm, handleSearch }) {
 
-  const handleSearch = async () => {
-    // Lógica de búsqueda aquí
-    console.log('Buscando:', searchTerm);
-  };
+  const navigate = useNavigate();
 
   const getLinkStyles = ({ isActive }) => (
     `

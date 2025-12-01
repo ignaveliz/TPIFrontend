@@ -8,5 +8,5 @@ export const register = async (username, email, role, password) => {
     password,
   });
 
-  return { data: response.data.token, role: response.data.role, error: null };
+  return { data: response.data.token, role: response.data.role, userID: response.data.userID, error: null };
 };

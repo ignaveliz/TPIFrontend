@@ -1,27 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '../shared/components/Header';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 
-// Datos de ejemplo
-const mockCart = [
-  { id: 1, name: 'Nombre de producto 1', price: 1500, quantity: 2 },
-  { id: 2, name: 'Nombre de producto 2', price: 3000, quantity: 1 },
-  { id: 3, name: 'Nombre de producto 3', price: 500, quantity: 5 },
-];
+// AJUSTA ESTA RUTA según donde hayas guardado el archivo del paso anterior
+import { createOrder } from '../../orders/services/createOrder';
 
 function CartPage() {
-  const [cartItems, setCartItems] = useState(mockCart);
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const storedCart = localStorage.getItem('cart');
+
+      return storedCart ? JSON.parse(storedCart) : [];
+    } catch (error) {
+      console.error('Error al cargar el carrito:', error);
+
+      return [];
+    }
+  });
+
+  // Estado para indicar que se está procesando la compra (loading)
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const totalPrice = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const totalPrice = cartItems.reduce((acc, item) => acc + (item.currentUnitPrice * item.quantity), 0);
 
   const handleQuantity = (id, delta) => {
     setCartItems(current => current.map(item => {
       if (item.id === id) {
-        const newQuantity = Math.max(0, item.quantity + delta);
+        const newQuantity = Math.max(1, item.quantity + delta);
+
         return { ...item, quantity: newQuantity };
       }
+
       return item;
     }));
   };
@@ -30,54 +45,99 @@ function CartPage() {
     setCartItems(current => current.filter(item => item.id !== id));
   };
 
+  // --- NUEVA FUNCIÓN PARA FINALIZAR COMPRA ---
+  const handleFinalizePurchase = async () => {
+    // 1. Obtener UserID
+    const userId = localStorage.getItem('userID');
+
+    if (!userId) {
+      alert('Error: No se encontró el usuario. Por favor inicia sesión.');
+
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      alert('El carrito está vacío');
+
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // 2. Preparar los datos
+      const orderData = {
+        userId: userId,
+        items: cartItems, // Pasamos los items actuales del estado
+      };
+
+      // 3. Llamar a la API
+      await createOrder(orderData);
+
+      // 4. Éxito: Limpiar carrito y avisar
+      setCartItems([]); // Esto limpiará el localStorage automáticamente por el useEffect
+      console.log('¡Orden creada con éxito!');
+
+      // Aquí podrías redirigir al usuario, ej: navigate('/orders')
+
+    } catch (error) {
+      console.error('Error al crear la orden:', error);
+      console.log('Hubo un error al procesar tu compra.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="h-full grid grid-cols-1 grid-rows-[auto_1fr] bg-gray-50">
-      
+
       <Header />
 
       <div className="p-6 max-w-7xl mx-auto w-full">
-        
-        {/* VOLVEMOS A 3 COLUMNAS: 2 para productos, 1 para detalle */}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* COLUMNA IZQUIERDA: Productos (Ocupa 2/3) */}
+
+          {/* COLUMNA IZQUIERDA: Productos */}
           <div className="lg:col-span-2 flex flex-col gap-4">
             {cartItems.map((item) => (
               <Card key={item.id} className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-gray-800 mb-2">{item.name}</h3>
+                  <p className="text-sm text-gray-400 mb-2">{item.description}</p>
                   <div className="text-gray-500 mb-1">
-                    Cantidad de productos: {item.quantity}
+                    Precio unitario: ${item.currentUnitPrice.toLocaleString()}
                   </div>
-                  <div className="text-gray-500">
-                    Sub Total: ${(item.price * item.quantity).toLocaleString()}
+                  <div className="text-gray-500 font-semibold">
+                    Sub Total: ${(item.currentUnitPrice * item.quantity).toLocaleString()}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button 
+                  <button
                     onClick={() => handleQuantity(item.id, -1)}
-                    className="font-bold text-xl px-2 text-gray-600 hover:text-black"
+                    className="font-bold text-xl px-2 text-gray-600 hover:text-black disabled:opacity-30"
+                    disabled={item.quantity <= 1 || isProcessing}
                   >
                     −
                   </button>
-                  
+
                   <span className="border border-gray-300 rounded px-4 py-1 bg-white text-gray-700 min-w-[3rem] text-center">
                     {item.quantity}
                   </span>
 
-                  <button 
+                  <button
                     onClick={() => handleQuantity(item.id, 1)}
-                    className="font-bold text-xl px-2 text-gray-600 hover:text-black"
+                    className="font-bold text-xl px-2 text-gray-600 hover:text-black disabled:opacity-30"
+                    disabled={isProcessing}
                   >
                     +
                   </button>
 
-                  <Button 
+                  <Button
                     variant="default"
                     className="ml-2"
                     onClick={() => handleRemove(item.id)}
+                    disabled={isProcessing}
                   >
                     Borrar
                   </Button>
@@ -86,25 +146,31 @@ function CartPage() {
             ))}
 
             {cartItems.length === 0 && (
-              <p className="text-center text-gray-500 mt-10">Tu carrito está vacío.</p>
+              <div className="text-center mt-10">
+                <p className="text-gray-500 text-lg">Tu carrito está vacío.</p>
+              </div>
             )}
           </div>
 
-          {/* COLUMNA DERECHA: Detalle de pedido (Ocupa 1/3) */}
+          {/* COLUMNA DERECHA: Resumen */}
           <div className="lg:col-span-1">
-            {/* CAMBIO CLAVE: h-[calc(100vh-8rem)] fuerza la altura vertical */}
             <Card className="h-[calc(100vh-8rem)] sticky top-4 flex flex-col gap-6">
               <h2 className="text-2xl font-bold text-gray-900">Detalle de pedido</h2>
-              
+
               <div className="flex flex-col gap-2 text-gray-600 text-lg">
-                <p>Cantidad de en total: <span className="font-semibold text-gray-800">{totalItems}</span></p>
-                <p>Total a pagar: <span className="font-semibold text-gray-800">${totalPrice.toLocaleString()}</span></p>
+                <p>Total de productos: <span className="font-semibold text-gray-800">{totalItems}</span></p>
+                <div className="border-t pt-2 mt-2">
+                  <p className="text-xl">Total a pagar: <span className="font-bold text-gray-900">${totalPrice.toLocaleString()}</span></p>
+                </div>
               </div>
 
-              {/* mt-auto empuja este div hacia el fondo de la tarjeta */}
               <div className="mt-auto pt-4">
-                <Button className="w-full py-3 text-lg">
-                  Finalizar Compra
+                <Button
+                  className="w-full py-3 text-lg"
+                  disabled={cartItems.length === 0 || isProcessing}
+                  onClick={handleFinalizePurchase} // <--- CLICK AQUÍ
+                >
+                  {isProcessing ? 'Procesando...' : 'Finalizar Compra'}
                 </Button>
               </div>
             </Card>
