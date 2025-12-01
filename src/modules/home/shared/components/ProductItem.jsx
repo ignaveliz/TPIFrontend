@@ -3,26 +3,45 @@ import { useState } from 'react';
 function ProductItem({ imageAspect = 'aspect-square', product }) {
   const [quantity, setQuantity] = useState(1);
 
-  // Asumimos que la propiedad se llama 'stock'.
-  // Si tu backend la llama diferente, cámbialo aquí.
-  const maxStock = product.stockQuantity;
+  // Asumimos que la propiedad se llama 'stock' (ajusta si es necesario)
+  var maxStock = product.stockQuantity;
 
+  // --- LÓGICA DE CANTIDAD (Igual que antes) ---
   const handleIncrement = () => {
-    setQuantity(prev => {
-      // Solo sumamos si el valor actual es menor al stock disponible
-      if (prev < maxStock) return prev + 1;
-
-      return prev; // Si ya llegamos al máximo, no hacemos nada
-    });
+    setQuantity(prev => (prev < maxStock ? prev + 1 : prev));
   };
 
   const handleDecrement = () => {
-    setQuantity(prev => {
-      // El mínimo sigue siendo 1
-      if (prev > 1) return prev - 1;
+    setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+  };
 
-      return 1;
-    });
+  // --- LÓGICA DEL CARRITO (NUEVO) ---
+  const addToCart = () => {
+    // 1. Obtener el carrito actual del localStorage (o un array vacío si no existe)
+    const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // 2. Buscar si el producto ya existe en el carrito (por ID)
+    const existingProductIndex = storedCart.findIndex(item => item.id === product.id);
+
+    if (existingProductIndex >= 0) {
+      // CASO A: El producto YA ESTABA -> Sumamos la cantidad
+      // Opcional: Aquí podrías validar que la suma no supere el stock total
+      storedCart[existingProductIndex].quantity += quantity;
+    } else {
+      // CASO B: El producto ES NUEVO -> Lo agregamos al array
+      // Guardamos toda la info del producto + la cantidad seleccionada
+      storedCart.push({ ...product, quantity: quantity });
+    }
+
+    // 3. Guardar el carrito actualizado en localStorage
+    localStorage.setItem('cart', JSON.stringify(storedCart));
+
+    // Feedback para el usuario (puedes cambiarlo por un toast/notificación más bonito luego)
+    console.log(`Se agregaron ${quantity} unidad(es) de ${product.name} al carrito.`);
+
+    // Opcional: Resetear el contador a 1 después de agregar
+    setQuantity(1);
+
   };
 
   return (
@@ -40,7 +59,7 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
 
         <div className="flex items-center gap-2">
 
-          {/* CONTROLES DE CANTIDAD */}
+          {/* Controles + / - */}
           <div className="flex items-center gap-2">
             <button
               onClick={handleDecrement}
@@ -56,7 +75,6 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
 
             <button
               onClick={handleIncrement}
-              // Deshabilitamos si la cantidad actual iguala o supera el stock
               className="text-gray-500 hover:text-black font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
               disabled={quantity >= maxStock}
             >
@@ -64,16 +82,20 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
             </button>
           </div>
 
-          <button className="bg-purple-100 text-purple-700 hover:bg-purple-200 text-xs font-semibold px-3 py-1.5 rounded-md transition-colors">
+          {/* BOTÓN AGREGAR: Conectado a la función addToCart */}
+          <button
+            onClick={addToCart}
+            className="bg-purple-100 text-purple-700 hover:bg-purple-200 text-xs font-semibold px-3 py-1.5 rounded-md transition-colors active:scale-95"
+          >
             Agregar
           </button>
         </div>
       </div>
 
-      {/* (Opcional) Mensaje visual si no hay stock suficiente para agregar más */}
+      {/* Mensaje de stock límite */}
       {quantity >= maxStock && (
         <div className="text-[10px] text-red-500 text-right mt-1 font-medium">
-          Máx. stock alcanzado
+          Stock máx.
         </div>
       )}
     </>
