@@ -1,13 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function ProductItem({ imageAspect = 'aspect-square', product }) {
   const [quantity, setQuantity] = useState(1);
+  const [qtyInCart, setQtyInCart] = useState(0);
 
-  var maxStock = product.stockQuantity;
-  const isOutOfStock = maxStock === 0;
+  // 1. Función para obtener cuánto tenemos ya en el carrito
+  const getQtyInCart = () => {
+    try {
+      const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
+      const item = storedCart.find(i => i.id === product.id);
+
+      return item ? item.quantity : 0;
+    } catch (error) {
+      console.error('Error al obtener la cantidad en el carrito:', error);
+
+      return 0;
+    }
+  };
+
+  // 2. Cargar la cantidad inicial al montar el componente
+  useEffect(() => {
+    setQtyInCart(getQtyInCart());
+  }, [product.id]);
+
+  // 3. Calculamos el stock REAL disponible para agregar (Total - Lo que ya tengo)
+  const availableStock = product.stockQuantity - qtyInCart;
+  const isOutOfStock = availableStock <= 0;
 
   const handleIncrement = () => {
-    setQuantity(prev => (prev < maxStock ? prev + 1 : prev));
+    // Validamos contra availableStock en lugar del stock total
+    setQuantity(prev => (prev < availableStock ? prev + 1 : prev));
   };
 
   const handleDecrement = () => {
@@ -16,6 +38,13 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
 
   const addToCart = () => {
     if (isOutOfStock) return;
+
+    // Validación extra: No permitir agregar más de lo disponible
+    if (quantity > availableStock) {
+      alert(`Solo quedan ${availableStock} unidades disponibles.`);
+
+      return;
+    }
 
     const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
     const existingProductIndex = storedCart.findIndex(item => item.id === product.id);
@@ -29,14 +58,15 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
     localStorage.setItem('cart', JSON.stringify(storedCart));
     console.log(`Se agregaron ${quantity} unidad(es) de ${product.name} al carrito.`);
 
-    setQuantity(1);
+    // 4. Actualizamos el estado local para reflejar el nuevo stock disponible inmediatamente
+    setQtyInCart(prev => prev + quantity);
+    setQuantity(1); // Reseteamos el contador a 1
+
   };
 
   return (
-    // FIX: Envolver todo en un único div contenedor para que respete el padding de la Card padre
     <div className="flex flex-col h-full">
 
-      {/* 1. Contenedor Superior (Imagen y Título) */}
       <div>
         <div className={`w-full bg-gray-200 rounded-lg mb-3 ${imageAspect} flex items-center justify-center relative overflow-hidden`}>
           <svg className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -45,16 +75,16 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
 
           {isOutOfStock && (
             <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
-              <span className="bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">SIN STOCK</span>
+              <span className="bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
+                {product.stockQuantity === 0 ? 'SIN STOCK' : 'EN CARRITO'}
+              </span>
             </div>
           )}
         </div>
 
-        {/* Usamos mb-auto para empujar el resto del contenido hacia abajo si hay espacio extra */}
         <h3 className="text-gray-700 font-medium text-sm mb-4">{product.name}</h3>
       </div>
 
-      {/* 2. Contenedor Inferior (Controles y Mensajes) */}
       <div className="mt-auto">
         <div className="flex items-center justify-between">
           <span className={`font-bold ${isOutOfStock ? 'text-gray-400' : 'text-gray-900'}`}>
@@ -78,7 +108,8 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
               <button
                 onClick={handleIncrement}
                 className="text-gray-500 hover:text-black font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
-                disabled={quantity >= maxStock || isOutOfStock}
+                // Validamos contra availableStock
+                disabled={quantity >= availableStock || isOutOfStock}
               >
                 +
               </button>
@@ -100,13 +131,13 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
           </div>
         </div>
 
-        {/* Mensajes de Estado - Ahora contenido de forma segura dentro del div principal */}
+        {/* Mensajes de Estado */}
         <div className="text-right mt-2 min-h-[1.25rem]">
           {isOutOfStock ? (
             <span className="text-[10px] text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded inline-block shadow-sm border border-red-100">
-              ¡Producto Agotado!
+              {product.stockQuantity === 0 ? '¡Producto Agotado!' : '¡Stock en carrito!'}
             </span>
-          ) : quantity >= maxStock ? (
+          ) : quantity >= availableStock ? (
             <span className="text-[10px] text-orange-500 font-medium">
               Stock máx. alcanzado
             </span>
