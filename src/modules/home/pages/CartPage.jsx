@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Importamos useNavigate
+import { useNavigate } from 'react-router-dom';
 import Header from '../shared/components/Header';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
@@ -16,7 +16,6 @@ function CartPage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
-  // NUEVO ESTADO: Bandera para saber si hay una compra esperando login
   const [pendingPurchase, setPendingPurchase] = useState(false);
 
   const [cartItems, setCartItems] = useState(() => {
@@ -34,22 +33,16 @@ function CartPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Persistencia del carrito
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // CAMBIO: Se eliminó el useEffect que forzaba el login al montar el componente.
-  // Ahora el usuario puede ver el carrito sin estar logueado.
-
-  // NUEVO EFECTO: Detectar Login Exitoso para procesar orden pendiente
   useEffect(() => {
-    // Si el usuario se autentica (isAuthenticated pasa a true) Y había una compra pendiente
     if (isAuthenticated && pendingPurchase) {
-      processOrder(); // Ejecutar la orden automáticamente
-      setPendingPurchase(false); // Resetear la bandera
+      processOrder();
+      setPendingPurchase(false);
     }
-  }, [isAuthenticated, pendingPurchase]); // Dependencias clave
+  }, [isAuthenticated, pendingPurchase]);
 
   const filteredCartItems = cartItems.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -58,12 +51,19 @@ function CartPage() {
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = cartItems.reduce((acc, item) => acc + (item.currentUnitPrice * item.quantity), 0);
 
+  // CAMBIO PRINCIPAL: Validación de Stock en handleQuantity
   const handleQuantity = (id, delta) => {
     setCartItems(current => current.map(item => {
       if (item.id === id) {
-        const newQuantity = Math.max(1, item.quantity + delta);
+        const proposedQuantity = item.quantity + delta;
 
-        return { ...item, quantity: newQuantity };
+        // 1. Validar límite inferior: No permitir menos de 1
+        if (proposedQuantity < 1) return item;
+
+        // 2. Validar límite superior: No permitir más del stock disponible
+        if (proposedQuantity > item.stockQuantity) return item;
+
+        return { ...item, quantity: proposedQuantity };
       }
 
       return item;
@@ -74,27 +74,24 @@ function CartPage() {
     setCartItems(current => current.filter(item => item.id !== id));
   };
 
-  // Lógica centralizada para crear la orden
   const processOrder = async () => {
     if (cartItems.length === 0) return;
 
     setIsProcessing(true);
     try {
-      // Nota: userID ya debe estar disponible gracias al Contexto actualizado
       const orderData = {
-        userId: userID, // El ID viene del hook useAuth
+        userId: userID,
         items: cartItems,
       };
 
       await createOrder(orderData);
 
-      // Limpieza y Redirección
       setCartItems([]);
-      localStorage.removeItem('cart'); // Aseguramos limpieza del storage
+      localStorage.removeItem('cart');
       setSearchTerm('');
 
       alert('Compra realizada con éxito');
-      navigate('/'); // Redirigir al listado de productos
+      navigate('/');
 
     } catch (error) {
       console.error('Error al crear la orden:', error);
@@ -112,14 +109,12 @@ function CartPage() {
     }
 
     if (!isAuthenticated) {
-      // FLUJO NO LOGUEADO:
-      setPendingPurchase(true); // 1. Marcar intención de compra
-      setShowLoginModal(true);  // 2. Abrir modal para que se loguee
+      setPendingPurchase(true);
+      setShowLoginModal(true);
 
       return;
     }
 
-    // FLUJO LOGUEADO:
     processOrder();
   };
 
@@ -129,7 +124,6 @@ function CartPage() {
       <Modal isOpen={showLoginModal} onClose={() => {
         setShowLoginModal(false);
 
-        // Si cierra el modal sin loguearse, cancelamos la compra pendiente
         if (!isAuthenticated) setPendingPurchase(false);
       }}>
         <LoginForm onSuccess={() => setShowLoginModal(false)} />
@@ -182,10 +176,11 @@ function CartPage() {
                       {item.quantity}
                     </span>
 
+                    {/* CAMBIO: Botón "+" deshabilitado si quantity >= stockQuantity */}
                     <button
                       onClick={() => handleQuantity(item.id, 1)}
                       className="font-bold text-xl px-2 text-gray-600 hover:text-black disabled:opacity-30 mr-2"
-                      disabled={isProcessing}
+                      disabled={item.quantity >= item.stockQuantity || isProcessing}
                     >
                       +
                     </button>
