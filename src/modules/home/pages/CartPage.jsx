@@ -2,17 +2,14 @@ import { useState, useEffect } from 'react';
 import Header from '../shared/components/Header';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
-
-// 1. IMPORTACIONES NUEVAS
 import Modal from '../../shared/components/Modal';
 import LoginForm from '../../auth/components/LoginForm';
 import useAuth from '../../auth/hook/useAuth';
-
 import { createOrder } from '../../orders/services/createOrder';
 
 function CartPage() {
-  const { isAuthenticated, userID } = useAuth(); // Obtenemos el estado del usuario
-  const [showLoginModal, setShowLoginModal] = useState(false); // Estado para controlar la modal
+  const { isAuthenticated, userID } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [cartItems, setCartItems] = useState(() => {
     try {
@@ -28,14 +25,11 @@ function CartPage() {
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Guardar carrito en localStorage cuando cambia
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // 2. EFECTO PARA ABRIR MODAL AUTOMÁTICAMENTE
   useEffect(() => {
-    // Si NO está autenticado, abrimos la modal
     if (!isAuthenticated) {
       setShowLoginModal(true);
     }
@@ -61,7 +55,6 @@ function CartPage() {
   };
 
   const handleFinalizePurchase = async () => {
-    // Verificación de seguridad extra al hacer click en el botón
     if (!isAuthenticated) {
       setShowLoginModal(true);
 
@@ -89,11 +82,8 @@ function CartPage() {
       };
 
       await createOrder(orderData);
-
       setCartItems([]);
-      console.log('¡Orden creada con éxito!');
       alert('Compra realizada con éxito');
-
     } catch (error) {
       console.error('Error al crear la orden:', error);
       alert('Hubo un error al procesar tu compra.');
@@ -105,88 +95,90 @@ function CartPage() {
   return (
     <div className="h-full grid grid-cols-1 grid-rows-[auto_1fr] bg-gray-50">
 
-      {/* 3. RENDERIZADO DE LA MODAL */}
-      {/* Al pasar onSuccess, el LoginForm se cerrará automáticamente al loguearse */}
       <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
         <LoginForm onSuccess={() => setShowLoginModal(false)} />
       </Modal>
 
+      {/* Header pasándole props vacías si no se usa búsqueda aquí, o ajusta según necesites */}
       <Header />
 
-      <div className="p-6 max-w-7xl mx-auto w-full">
+      <div className="p-4 md:p-6 max-w-7xl mx-auto w-full">
+        {/* Grid Principal: 1 columna en móvil, 3 en escritorio grande */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-          {/* COLUMNA IZQUIERDA: Productos */}
+          {/* COLUMNA IZQUIERDA: Lista de Productos */}
           <div className="lg:col-span-2 flex flex-col gap-4">
-            {cartItems.map((item) => (
-              <Card key={item.id} className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{item.name}</h3>
-                  <p className="text-sm text-gray-400 mb-2">{item.description}</p>
-                  <div className="text-gray-500 mb-1">
-                    Precio unitario: ${item.currentUnitPrice.toLocaleString()}
-                  </div>
-                  <div className="text-gray-500 font-semibold">
-                    Sub Total: ${(item.currentUnitPrice * item.quantity).toLocaleString()}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => handleQuantity(item.id, -1)}
-                    className="font-bold text-xl px-2 text-gray-600 hover:text-black disabled:opacity-30"
-                    disabled={item.quantity <= 1 || isProcessing}
-                  >
-                    −
-                  </button>
-
-                  <span className="border border-gray-300 rounded px-4 py-1 bg-white text-gray-700 min-w-[3rem] text-center">
-                    {item.quantity}
-                  </span>
-
-                  <button
-                    onClick={() => handleQuantity(item.id, 1)}
-                    className="font-bold text-xl px-2 text-gray-600 hover:text-black disabled:opacity-30"
-                    disabled={isProcessing}
-                  >
-                    +
-                  </button>
-
-                  <Button
-                    variant="default"
-                    className="ml-2"
-                    onClick={() => handleRemove(item.id)}
-                    disabled={isProcessing}
-                  >
-                    Borrar
-                  </Button>
-                </div>
-              </Card>
-            ))}
-
-            {cartItems.length === 0 && (
+            {cartItems.length === 0 ? (
               <div className="text-center mt-10">
                 <p className="text-gray-500 text-lg">Tu carrito está vacío.</p>
               </div>
+            ) : (
+              cartItems.map((item) => (
+                <Card key={item.id} className="flex flex-col gap-4">
+                  {/* Info Superior: Nombre y Detalles de Texto */}
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">{item.name}</h3>
+                    <div className="text-gray-500 text-sm space-y-1">
+                      <p>Cantidad de productos: {item.quantity}</p>
+                      <p>Sub Total: ${(item.currentUnitPrice * item.quantity).toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  {/* Controles Inferiores: Alineados a la derecha (flex-row) */}
+                  <div className="flex items-center justify-end gap-3 mt-2">
+                    {/* Botón Menos */}
+                    <button
+                      onClick={() => handleQuantity(item.id, -1)}
+                      className="font-bold text-xl px-2 text-gray-600 hover:text-black disabled:opacity-30"
+                      disabled={item.quantity <= 1 || isProcessing}
+                    >
+                      −
+                    </button>
+
+                    {/* Input Cantidad (Visual) */}
+                    <span className="border border-gray-300 rounded px-3 py-1 bg-white text-gray-700 min-w-[2.5rem] text-center text-sm">
+                      {item.quantity}
+                    </span>
+
+                    {/* Botón Más */}
+                    <button
+                      onClick={() => handleQuantity(item.id, 1)}
+                      className="font-bold text-xl px-2 text-gray-600 hover:text-black disabled:opacity-30 mr-2"
+                      disabled={isProcessing}
+                    >
+                      +
+                    </button>
+
+                    {/* Botón Borrar */}
+                    <Button
+                      variant="default"
+                      className="text-sm px-4 py-1.5"
+                      onClick={() => handleRemove(item.id)}
+                      disabled={isProcessing}
+                    >
+                      Borrar
+                    </Button>
+                  </div>
+                </Card>
+              ))
             )}
           </div>
 
-          {/* COLUMNA DERECHA: Resumen */}
+          {/* COLUMNA DERECHA: Resumen (Abajo en móvil, lateral en desktop) */}
           <div className="lg:col-span-1">
-            <Card className="h-[calc(100vh-8rem)] sticky top-4 flex flex-col gap-6">
-              <h2 className="text-2xl font-bold text-gray-900">Detalle de pedido</h2>
+            <Card className="flex flex-col gap-6 sticky top-4">
+              <h2 className="text-xl font-bold text-gray-900">Detalle de pedido</h2>
 
-              <div className="flex flex-col gap-2 text-gray-600 text-lg">
-                <p>Total de productos: <span className="font-semibold text-gray-800">{totalItems}</span></p>
-                <div className="border-t pt-2 mt-2">
-                  <p className="text-xl">Total a pagar: <span className="font-bold text-gray-900">${totalPrice.toLocaleString()}</span></p>
-                </div>
+              {/* Detalles alineados a la izquierda/texto simple como en la imagen */}
+              <div className="flex flex-col gap-2 text-gray-600 text-base">
+                <p>Cantidad de en total: {totalItems}</p>
+                <p>Total a pagar: <span className="font-semibold text-gray-800">${totalPrice.toLocaleString()}</span></p>
               </div>
 
-              <div className="mt-auto pt-4">
+              {/* Botón Finalizar */}
+              <div className="mt-2">
                 <Button
-                  className="w-full py-3 text-lg"
+                  className="w-full py-3 text-base font-bold bg-purple-200 hover:bg-purple-300 text-purple-900 rounded-xl"
                   disabled={cartItems.length === 0 || isProcessing}
                   onClick={handleFinalizePurchase}
                 >
