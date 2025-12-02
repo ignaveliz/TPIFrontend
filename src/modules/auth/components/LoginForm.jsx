@@ -6,7 +6,6 @@ import Button from '../../shared/components/Button';
 import useAuth from '../hook/useAuth';
 import { frontendErrorMessage } from '../helpers/backendError';
 
-// Aceptamos la prop opcional onSuccess
 function LoginForm({ onSuccess }) {
   const [errorMessage, setErrorMessage] = useState('');
   const {
@@ -28,21 +27,17 @@ function LoginForm({ onSuccess }) {
         return;
       }
 
-      // LÓGICA MODIFICADA:
-      // Si existe onSuccess (es decir, estamos en el modal), lo ejecutamos y no navegamos.
       if (onSuccess) {
         onSuccess();
 
         return;
       }
 
-      // Comportamiento normal (Página de Login)
       if (role === 'Admin' || role === 'Tester') {
         navigate('/admin/home');
       } else {
         navigate('/');
       }
-
     } catch (error) {
       if (error?.response?.data?.code) {
         setErrorMessage(frontendErrorMessage[error?.response?.data?.code]);
@@ -52,38 +47,59 @@ function LoginForm({ onSuccess }) {
     }
   };
 
-  return (
-    <form className='
-        flex
-        flex-col
-        gap-8
-        bg-white
-        p-8
-        w-full
-        rounded-lg
-      '
-    onSubmit={handleSubmit(onValid)}
-    >
-      {/* Título opcional para que parezca el diseño de la imagen */}
-      <h2 className="text-2xl font-bold text-gray-800">Iniciar Sesión</h2>
+  // --- LÓGICA DE ESTILOS ---
+  // 1. Estilo ORIGINAL para la página /login (Tal cual tu archivo original)
+  const originalPageStyles = `
+    flex
+    flex-col
+    gap-20
+    bg-white
+    p-8
+    sm:w-md
+    sm:gap-4
+    sm:rounded-lg
+    sm:shadow-lg
+  `;
 
+  // 2. Estilo LIMPIO para la Modal (Sin sombra, sin fondo, ancho 100%)
+  const modalStyles = `
+    flex
+    flex-col
+    gap-4
+    w-full
+  `;
+
+  return (
+    <form
+      className={onSuccess ? modalStyles : originalPageStyles}
+      onSubmit={handleSubmit(onValid)}
+    >
       <Input
         label='Usuario'
-        { ...register('username', { required: 'Usuario es obligatorio' }) }
+        {...register('username', {
+          required: 'Usuario es obligatorio',
+        })}
         error={errors.username?.message}
       />
+
       <Input
         label='Contraseña'
-        { ...register('password', { required: 'Contraseña es obligatorio' }) }
+        {...register('password', {
+          required: 'Contraseña es obligatorio',
+        })}
         type='password'
         error={errors.password?.message}
       />
 
-      <div className="flex flex-col gap-3 pt-4">
+      {/* Botones */}
+      <div className='flex flex-col gap-3 mt-2'>
         <Button type='submit'>Iniciar Sesión</Button>
-        {/* Solo mostramos el botón de registro si NO estamos en el modal, o lo dejamos opcional */}
+
+        {/* El botón de registro SOLO se muestra en la página normal, no en la modal */}
         {!onSuccess && (
-          <Button variant='secondary' onClick={() => navigate('/signup')}>Registrar Usuario</Button>
+          <Button variant='secondary' onClick={() => navigate('/signup')}>
+            Registrar Usuario
+          </Button>
         )}
       </div>
 
