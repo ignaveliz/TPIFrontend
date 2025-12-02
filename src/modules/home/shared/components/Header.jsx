@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Button from '../../../shared/components/Button';
 import useAuth from '../../../auth/hook/useAuth';
 
-function Header({ searchTerm, setSearchTerm, handleSearch }) {
+function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }) {
   const navigate = useNavigate();
   const { isAuthenticated, singout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,13 +14,27 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
     setIsMenuOpen(false);
   };
 
+  const handleLoginClick = () => {
+    setIsMenuOpen(false);
+
+    if (onLogin) onLogin();
+    else navigate('/login');
+  };
+
+  const handleRegisterClick = () => {
+    setIsMenuOpen(false);
+
+    if (onRegister) onRegister();
+    else navigate('/signup');
+  };
+
   // ESTILOS: Links para Desktop (Píldora horizontal)
   const getDesktopLinkStyles = ({ isActive }) => (
     `
-      block bg-gray-100 px-4 py-2 font-medium rounded-4xl transition hover:bg-gray-200 text-center
+      block px-4 py-2 font-medium rounded-full transition text-center
       ${isActive
-      ? 'bg-purple-200 hover:bg-purple-300'
-      : ''
+      ? 'bg-purple-100 text-purple-700'
+      : 'text-gray-600 hover:bg-gray-100'
     }
     `
   );
@@ -30,7 +44,7 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
     `
       block px-4 py-3 font-medium rounded-xl transition text-left mb-2 text-lg
       ${isActive
-      ? 'bg-purple-100'
+      ? 'bg-purple-100 text-purple-700'
       : 'text-gray-700 hover:bg-gray-50'
     }
     `
@@ -57,11 +71,11 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
               </nav>
             </div>
 
-            {/* 2. CENTRO: Barra de Búsqueda (Visible en móvil y desktop) */}
+            {/* 2. CENTRO: Barra de Búsqueda */}
             <div className='flex-1 max-w-2xl'>
               <div className="relative flex items-center w-full">
                 <input
-                  value={searchTerm}
+                  value={searchTerm || ''}
                   onChange={(evt) => setSearchTerm && setSearchTerm(evt.target.value)}
                   type="text"
                   placeholder='Buscar...'
@@ -86,11 +100,11 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
             <div className="flex items-center shrink-0">
               <div className="hidden md:flex items-center gap-3">
                 {isAuthenticated ? (
-                  <Button className="font-medium px-5 py-2 rounded-lg" onClick={handleLogout}>Cerrar Sesión</Button>
+                  <Button className="font-medium px-5 py-2 rounded-lg" onClick={handleLogout}>Salir</Button>
                 ) : (
                   <>
-                    <Button className="bg-purple-100 text-gray-700 hover:bg-purple-200 font-medium px-4 py-2" onClick={() => navigate('/login')}>Iniciar Sesión</Button>
-                    <Button className="bg-gray-100 text-gray-700 hover:bg-gray-300 font-medium px-4 py-2" onClick={() => navigate('/signup')}>Registrarse</Button>
+                    <Button className="bg-transparent text-gray-600 hover:bg-gray-100 font-medium px-4 py-2" onClick={handleLoginClick}>Ingresar</Button>
+                    <Button className="bg-purple-600 text-white hover:bg-purple-700 font-medium px-4 py-2" onClick={handleRegisterClick}>Registro</Button>
                   </>
                 )}
               </div>
@@ -110,8 +124,6 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
       </header>
 
       {/* --- SIDEBAR MÓVIL (DRAWER) --- */}
-
-      {/* 1. Fondo Oscuro (Overlay) */}
       {isMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-50 md:hidden transition-opacity"
@@ -119,7 +131,6 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
         />
       )}
 
-      {/* 2. Panel Lateral Blanco */}
       <aside
         className={`
           fixed top-0 left-0 h-full w-[80%] max-w-sm bg-white z-50 shadow-2xl 
@@ -127,21 +138,18 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
           ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        {/* Header del Sidebar */}
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <span className="font-bold text-xl text-gray-800">Menú</span>
           <button
             onClick={() => setIsMenuOpen(false)}
             className="text-gray-500 hover:text-gray-800 p-1"
           >
-            {/* Ícono X de cierre */}
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Links de Navegación */}
         <div className="flex-1 p-4 overflow-y-auto">
           <nav className="flex flex-col gap-1">
             <NavLink to="/" className={getSidebarLinkStyles} onClick={() => setIsMenuOpen(false)}>
@@ -153,12 +161,10 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
           </nav>
         </div>
 
-        {/* Footer del Sidebar (Cerrar Sesión) */}
         <div className="p-4 border-t border-gray-100 pb-6">
           {isAuthenticated ? (
             <button
               onClick={handleLogout}
-              // CAMBIOS AQUI: text-center, py-2
               className="w-full flex justify-center items-center px-5 py-2 rounded-xl bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition text-center"
             >
               Cerrar sesión
@@ -166,14 +172,14 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
           ) : (
             <div className="flex flex-col gap-3">
               <button
-                onClick={() => { navigate('/login'); setIsMenuOpen(false); }}
-                className="w-full text-center text-2xl px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200"
+                onClick={handleLoginClick}
+                className="w-full text-center px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200"
               >
                 Iniciar Sesión
               </button>
               <button
-                onClick={() => { navigate('/signup'); setIsMenuOpen(false); }}
-                className="w-full text-center text-2xl px-4 py-2 rounded-xl bg-purple-200 text-gray-700 font-bold hover:bg-purple-700"
+                onClick={handleRegisterClick}
+                className="w-full text-center px-4 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700"
               >
                 Registrarse
               </button>

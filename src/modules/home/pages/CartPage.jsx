@@ -4,14 +4,17 @@ import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import Modal from '../../shared/components/Modal';
 import LoginForm from '../../auth/components/LoginForm';
+import RegisterForm from '../../auth/components/RegisterForm'; // Importamos RegisterForm
 import useAuth from '../../auth/hook/useAuth';
 import { createOrder } from '../../orders/services/createOrder';
 
 function CartPage() {
   const { isAuthenticated, userID } = useAuth();
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Estado del Carrito (Datos reales)
+  // Estados para las Modales
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+
   const [cartItems, setCartItems] = useState(() => {
     try {
       const storedCart = localStorage.getItem('cart');
@@ -24,27 +27,24 @@ function CartPage() {
     }
   });
 
-  // Estado para el buscador
   const [searchTerm, setSearchTerm] = useState('');
-
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
+  // Si no está autenticado, abrimos la modal de Login automáticamente al entrar
   useEffect(() => {
     if (!isAuthenticated) {
       setShowLoginModal(true);
     }
   }, [isAuthenticated]);
 
-  // Lógica de Filtrado Visual (Solo afecta qué items se renderizan)
   const filteredCartItems = cartItems.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  // Cálculos basados en el carrito COMPLETO (cartItems), no en el filtrado
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = cartItems.reduce((acc, item) => acc + (item.currentUnitPrice * item.quantity), 0);
 
@@ -86,7 +86,6 @@ function CartPage() {
     setIsProcessing(true);
 
     try {
-      // Se envía el carrito completo (cartItems), ignorando el filtro de búsqueda
       const orderData = {
         userId: userID,
         items: cartItems,
@@ -94,7 +93,7 @@ function CartPage() {
 
       await createOrder(orderData);
       setCartItems([]);
-      setSearchTerm(''); // Limpiar búsqueda al finalizar
+      setSearchTerm('');
       alert('Compra realizada con éxito');
     } catch (error) {
       console.error('Error al crear la orden:', error);
@@ -107,37 +106,42 @@ function CartPage() {
   return (
     <div className="h-full grid grid-cols-1 grid-rows-[auto_1fr] bg-gray-50">
 
+      {/* MODAL LOGIN */}
       <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
         <LoginForm onSuccess={() => setShowLoginModal(false)} />
       </Modal>
 
-      {/* Pasamos searchTerm y setSearchTerm al Header para conectar el input */}
+      {/* MODAL REGISTRO (Nuevo) */}
+      <Modal isOpen={showRegisterModal} onClose={() => setShowRegisterModal(false)}>
+        <RegisterForm
+          onSuccess={() => setShowRegisterModal(false)}
+          defaultRole="Usuario"
+        />
+      </Modal>
+
+      {/* Header con handlers */}
       <Header
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+        onLogin={() => setShowLoginModal(true)}
+        onRegister={() => setShowRegisterModal(true)}
       />
 
       <div className="p-4 md:p-6 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* COLUMNA IZQUIERDA: Lista de Productos */}
           <div className="lg:col-span-2 flex flex-col gap-4">
-
-            {/* Mensaje si el carrito está vacío */}
             {cartItems.length === 0 ? (
               <div className="text-center mt-10">
                 <p className="text-gray-500 text-lg">Tu carrito está vacío.</p>
               </div>
             ) : filteredCartItems.length === 0 ? (
-              /* Mensaje si hay productos pero no coinciden con la búsqueda */
               <div className="text-center mt-10">
                 <p className="text-gray-500 text-lg">No se encontraron productos con ese nombre.</p>
               </div>
             ) : (
-              /* Mapeamos filteredCartItems para mostrar solo los resultados de búsqueda */
               filteredCartItems.map((item) => (
                 <Card key={item.id} className="flex flex-col gap-4">
-                  {/* Info Superior */}
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 mb-2">{item.name}</h3>
                     <div className="text-gray-500 text-sm space-y-1">
@@ -146,7 +150,6 @@ function CartPage() {
                     </div>
                   </div>
 
-                  {/* Controles Inferiores */}
                   <div className="flex items-center justify-end gap-3 mt-2">
                     <button
                       onClick={() => handleQuantity(item.id, -1)}
@@ -182,7 +185,6 @@ function CartPage() {
             )}
           </div>
 
-          {/* COLUMNA DERECHA: Resumen (Se mantiene igual, mostrando totales reales) */}
           <div className="lg:col-span-1">
             <Card className="flex flex-col gap-6 sticky top-4">
               <h2 className="text-xl font-bold text-gray-900">Detalle de pedido</h2>

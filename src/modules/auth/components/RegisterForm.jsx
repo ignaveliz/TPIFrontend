@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { frontendErrorMessage } from '../helpers/backendError';
@@ -13,23 +13,44 @@ const roleOptions = [
   { label: 'Tester', value: 'Tester' },
 ];
 
-function RegisterForm() {
+function RegisterForm({ onSuccess, defaultRole }) {
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Si hay un defaultRole, lo inicializamos en el formulario
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
-  } = useForm({ defaultValues: { username: '', email: '', role: '', password: '', confirmPassword: '' } });
+  } = useForm({
+    defaultValues: {
+      username: '',
+      email: '',
+      role: defaultRole || '', // Inicializar con el rol por defecto si existe
+      password: '',
+      confirmPassword: '',
+    },
+  });
 
   const navigate = useNavigate();
   const { signup } = useAuth();
 
+  // Forzar el valor del rol si se pasa por props (efecto de seguridad)
+  useEffect(() => {
+    if (defaultRole) {
+      setValue('role', defaultRole);
+    }
+  }, [defaultRole, setValue]);
+
   const onValid = async (formData) => {
     try {
+      // Si hay defaultRole, nos aseguramos que se envíe ese, aunque el input esté oculto
+      const roleToSend = defaultRole || formData.role;
+
       const { error, role } = await signup(
         formData.username,
         formData.email,
-        formData.role,
+        roleToSend,
         formData.password,
       );
 
@@ -39,12 +60,19 @@ function RegisterForm() {
         return;
       }
 
-      if (role === 'Admin' || role === 'Tester') {
-        navigate('/admin/home');
+      // Si se provee onSuccess (comportamiento Modal), lo ejecutamos y no navegamos
+      if (onSuccess) {
+        onSuccess();
 
         return;
       }
-      else navigate('/');
+
+      // Comportamiento normal (Página /signup)
+      if (role === 'Admin' || role === 'Tester') {
+        navigate('/admin/home');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       if (error?.response?.data?.code) {
         setErrorMessage(frontendErrorMessage[error?.response?.data?.code]);
@@ -54,19 +82,33 @@ function RegisterForm() {
     }
   };
 
+  // --- LÓGICA DE ESTILOS ---
+  // Estilo ORIGINAL para la página /signup
+  const originalPageStyles = `
+    flex
+    flex-col
+    gap-20
+    bg-white
+    p-8
+    sm:w-md
+    sm:gap-4
+    sm:rounded-lg
+    sm:shadow-lg
+  `;
+
+  // Estilo LIMPIO para la Modal
+  const modalStyles = `
+    flex
+    flex-col
+    gap-4
+    w-full
+  `;
+
   return (
     <form
       onSubmit={handleSubmit(onValid)}
-      className='flex
-        flex-col
-        gap-20
-        bg-white
-        p-8
-        sm:w-md
-        sm:gap-4
-        sm:rounded-lg
-        sm:shadow-lg'>
-
+      className={onSuccess ? modalStyles : originalPageStyles}
+    >
       <Input
         label='Usuario'
         {...register('username', { required: 'Usuario es obligatorio' })}
@@ -83,12 +125,15 @@ function RegisterForm() {
         error={errors.email?.message}
       />
 
-      <Select
-        label='Rol'
-        options={roleOptions}
-        {...register('role', { required: 'Rol es obligatorio' })}
-        error={errors.role?.message}
-      />
+      {/* Solo mostramos el Select si NO hay un rol por defecto forzado */}
+      {!defaultRole && (
+        <Select
+          label='Rol'
+          options={roleOptions}
+          {...register('role', { required: 'Rol es obligatorio' })}
+          error={errors.role?.message}
+        />
+      )}
 
       <Input
         label='Contraseña'
@@ -116,11 +161,15 @@ function RegisterForm() {
       />
 
       <Button type='submit'>Registrar Usuario</Button>
-      <Button type='button' variant='secondary' onClick={() => navigate('/login')}>
-          Inicio de Sesión
-      </Button>
-      {errorMessage && <p className='text-red-500'>{errorMessage}</p>}
 
+      {/* El botón de ir a Login solo se muestra en la página completa, no en la modal */}
+      {!onSuccess && (
+        <Button type='button' variant='secondary' onClick={() => navigate('/login')}>
+            Inicio de Sesión
+        </Button>
+      )}
+
+      {errorMessage && <p className='text-red-500 text-center'>{errorMessage}</p>}
     </form>
   );
 }
