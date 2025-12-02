@@ -32,7 +32,7 @@ function CreateProductForm() {
 
       navigate('/admin/products');
     } catch (error) {
-      if (error.response?.data?.detail) {
+      if (error.response?.data?.code) {
         const errorMessage = frontendErrorMessage[error.response.data.code];
 
         setErrorBackendMessage(errorMessage);
