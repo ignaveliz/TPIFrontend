@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import useAuth from '../../../auth/hook/useAuth'; // Importar hook de autenticación
+// Ya no necesitamos useAuth aquí para bloquear la acción
 
-function ProductItem({ imageAspect = 'aspect-square', product, onLoginRequired }) {
+function ProductItem({ imageAspect = 'aspect-square', product }) {
   const [quantity, setQuantity] = useState(1);
-  const { isAuthenticated } = useAuth(); // Obtener estado de autenticación
 
   var maxStock = product.stockQuantity;
 
@@ -16,14 +15,9 @@ function ProductItem({ imageAspect = 'aspect-square', product, onLoginRequired }
   };
 
   const addToCart = () => {
-    // --- VERIFICACIÓN DE LOGIN ---
-    if (!isAuthenticated) {
-      if (onLoginRequired) onLoginRequired(); // Abrir modal
+    // CAMBIO: Se eliminó la verificación if (!isAuthenticated)...
+    // Ahora permite agregar al carrito libremente.
 
-      return; // Detener la ejecución
-    }
-
-    // Lógica normal de agregar al carrito
     const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
     const existingProductIndex = storedCart.findIndex(item => item.id === product.id);
 
@@ -35,7 +29,10 @@ function ProductItem({ imageAspect = 'aspect-square', product, onLoginRequired }
 
     localStorage.setItem('cart', JSON.stringify(storedCart));
     console.log(`Se agregaron ${quantity} unidad(es) de ${product.name} al carrito.`);
+
+    // Feedback visual opcional: resetear cantidad
     setQuantity(1);
+    alert('Producto agregado al carrito'); // Opcional: Feedback simple
   };
 
   return (

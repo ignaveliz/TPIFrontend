@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Importamos useNavigate
 import Header from '../shared/components/Header';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 import Modal from '../../shared/components/Modal';
 import LoginForm from '../../auth/components/LoginForm';
-import RegisterForm from '../../auth/components/RegisterForm'; // Importamos RegisterForm
+import RegisterForm from '../../auth/components/RegisterForm';
 import useAuth from '../../auth/hook/useAuth';
 import { createOrder } from '../../orders/services/createOrder';
 
 function CartPage() {
+  const navigate = useNavigate();
   const { isAuthenticated, userID } = useAuth();
 
-  // Estados para las Modales
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+
+  // NUEVO ESTADO: Bandera para saber si hay una compra esperando login
+  const [pendingPurchase, setPendingPurchase] = useState(false);
 
   const [cartItems, setCartItems] = useState(() => {
     try {
@@ -30,16 +34,22 @@ function CartPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Persistencia del carrito
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Si no está autenticado, abrimos la modal de Login automáticamente al entrar
+  // CAMBIO: Se eliminó el useEffect que forzaba el login al montar el componente.
+  // Ahora el usuario puede ver el carrito sin estar logueado.
+
+  // NUEVO EFECTO: Detectar Login Exitoso para procesar orden pendiente
   useEffect(() => {
-    if (!isAuthenticated) {
-      setShowLoginModal(true);
+    // Si el usuario se autentica (isAuthenticated pasa a true) Y había una compra pendiente
+    if (isAuthenticated && pendingPurchase) {
+      processOrder(); // Ejecutar la orden automáticamente
+      setPendingPurchase(false); // Resetear la bandera
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, pendingPurchase]); // Dependencias clave
 
   const filteredCartItems = cartItems.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -64,37 +74,28 @@ function CartPage() {
     setCartItems(current => current.filter(item => item.id !== id));
   };
 
-  const handleFinalizePurchase = async () => {
-    if (!isAuthenticated) {
-      setShowLoginModal(true);
-
-      return;
-    }
-
-    if (!userID) {
-      alert('Error: No se encontró el usuario. Por favor inicia sesión.');
-
-      return;
-    }
-
-    if (cartItems.length === 0) {
-      alert('El carrito está vacío');
-
-      return;
-    }
+  // Lógica centralizada para crear la orden
+  const processOrder = async () => {
+    if (cartItems.length === 0) return;
 
     setIsProcessing(true);
-
     try {
+      // Nota: userID ya debe estar disponible gracias al Contexto actualizado
       const orderData = {
-        userId: userID,
+        userId: userID, // El ID viene del hook useAuth
         items: cartItems,
       };
 
       await createOrder(orderData);
+
+      // Limpieza y Redirección
       setCartItems([]);
+      localStorage.removeItem('cart'); // Aseguramos limpieza del storage
       setSearchTerm('');
+
       alert('Compra realizada con éxito');
+      navigate('/'); // Redirigir al listado de productos
+
     } catch (error) {
       console.error('Error al crear la orden:', error);
       alert('Hubo un error al procesar tu compra.');
@@ -103,23 +104,41 @@ function CartPage() {
     }
   };
 
+  const handleFinalizePurchase = () => {
+    if (cartItems.length === 0) {
+      alert('El carrito está vacío');
+
+      return;
+    }
+
+    if (!isAuthenticated) {
+      // FLUJO NO LOGUEADO:
+      setPendingPurchase(true); // 1. Marcar intención de compra
+      setShowLoginModal(true);  // 2. Abrir modal para que se loguee
+
+      return;
+    }
+
+    // FLUJO LOGUEADO:
+    processOrder();
+  };
+
   return (
     <div className="h-full grid grid-cols-1 grid-rows-[auto_1fr] bg-gray-50">
 
-      {/* MODAL LOGIN */}
-      <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
+      <Modal isOpen={showLoginModal} onClose={() => {
+        setShowLoginModal(false);
+
+        // Si cierra el modal sin loguearse, cancelamos la compra pendiente
+        if (!isAuthenticated) setPendingPurchase(false);
+      }}>
         <LoginForm onSuccess={() => setShowLoginModal(false)} />
       </Modal>
 
-      {/* MODAL REGISTRO (Nuevo) */}
       <Modal isOpen={showRegisterModal} onClose={() => setShowRegisterModal(false)}>
-        <RegisterForm
-          onSuccess={() => setShowRegisterModal(false)}
-          defaultRole="Usuario"
-        />
+        <RegisterForm onSuccess={() => setShowRegisterModal(false)} defaultRole="Usuario" />
       </Modal>
 
-      {/* Header con handlers */}
       <Header
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
