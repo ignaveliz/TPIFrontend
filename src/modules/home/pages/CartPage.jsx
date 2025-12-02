@@ -3,10 +3,17 @@ import Header from '../shared/components/Header';
 import Card from '../../shared/components/Card';
 import Button from '../../shared/components/Button';
 
-// AJUSTA ESTA RUTA según donde hayas guardado el archivo del paso anterior
+// 1. IMPORTACIONES NUEVAS
+import Modal from '../../shared/components/Modal';
+import LoginForm from '../../auth/components/LoginForm';
+import useAuth from '../../auth/hook/useAuth';
+
 import { createOrder } from '../../orders/services/createOrder';
 
 function CartPage() {
+  const { isAuthenticated, userID } = useAuth(); // Obtenemos el estado del usuario
+  const [showLoginModal, setShowLoginModal] = useState(false); // Estado para controlar la modal
+
   const [cartItems, setCartItems] = useState(() => {
     try {
       const storedCart = localStorage.getItem('cart');
@@ -19,12 +26,20 @@ function CartPage() {
     }
   });
 
-  // Estado para indicar que se está procesando la compra (loading)
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Guardar carrito en localStorage cuando cambia
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
   }, [cartItems]);
+
+  // 2. EFECTO PARA ABRIR MODAL AUTOMÁTICAMENTE
+  useEffect(() => {
+    // Si NO está autenticado, abrimos la modal
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+    }
+  }, [isAuthenticated]);
 
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = cartItems.reduce((acc, item) => acc + (item.currentUnitPrice * item.quantity), 0);
@@ -45,12 +60,15 @@ function CartPage() {
     setCartItems(current => current.filter(item => item.id !== id));
   };
 
-  // --- NUEVA FUNCIÓN PARA FINALIZAR COMPRA ---
   const handleFinalizePurchase = async () => {
-    // 1. Obtener UserID
-    const userId = localStorage.getItem('userID');
+    // Verificación de seguridad extra al hacer click en el botón
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
 
-    if (!userId) {
+      return;
+    }
+
+    if (!userID) {
       alert('Error: No se encontró el usuario. Por favor inicia sesión.');
 
       return;
@@ -65,24 +83,20 @@ function CartPage() {
     setIsProcessing(true);
 
     try {
-      // 2. Preparar los datos
       const orderData = {
-        userId: userId,
-        items: cartItems, // Pasamos los items actuales del estado
+        userId: userID,
+        items: cartItems,
       };
 
-      // 3. Llamar a la API
       await createOrder(orderData);
 
-      // 4. Éxito: Limpiar carrito y avisar
-      setCartItems([]); // Esto limpiará el localStorage automáticamente por el useEffect
+      setCartItems([]);
       console.log('¡Orden creada con éxito!');
-
-      // Aquí podrías redirigir al usuario, ej: navigate('/orders')
+      alert('Compra realizada con éxito');
 
     } catch (error) {
       console.error('Error al crear la orden:', error);
-      console.log('Hubo un error al procesar tu compra.');
+      alert('Hubo un error al procesar tu compra.');
     } finally {
       setIsProcessing(false);
     }
@@ -90,6 +104,12 @@ function CartPage() {
 
   return (
     <div className="h-full grid grid-cols-1 grid-rows-[auto_1fr] bg-gray-50">
+
+      {/* 3. RENDERIZADO DE LA MODAL */}
+      {/* Al pasar onSuccess, el LoginForm se cerrará automáticamente al loguearse */}
+      <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
+        <LoginForm onSuccess={() => setShowLoginModal(false)} />
+      </Modal>
 
       <Header />
 
@@ -168,7 +188,7 @@ function CartPage() {
                 <Button
                   className="w-full py-3 text-lg"
                   disabled={cartItems.length === 0 || isProcessing}
-                  onClick={handleFinalizePurchase} // <--- CLICK AQUÍ
+                  onClick={handleFinalizePurchase}
                 >
                   {isProcessing ? 'Procesando...' : 'Finalizar Compra'}
                 </Button>
