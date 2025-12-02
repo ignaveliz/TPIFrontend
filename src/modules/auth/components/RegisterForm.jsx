@@ -77,9 +77,6 @@ function RegisterForm({ onSuccess, defaultRole }) {
     }
   };
 
-  // --- LÓGICA DE ESTILOS ---
-  // CAMBIO CLAVE: gap-20 -> gap-4
-  // Usamos gap-4 en móvil para que los múltiples campos no estiren la pantalla infinitamente.
   const originalPageStyles = `
     flex
     flex-col

@@ -47,8 +47,6 @@ function LoginForm({ onSuccess }) {
     }
   };
 
-  // --- LÓGICA DE ESTILOS ---
-  // 1. Estilo ORIGINAL para la página /login (Tal cual tu archivo original)
   const originalPageStyles = `
     flex
     flex-col
@@ -61,7 +59,6 @@ function LoginForm({ onSuccess }) {
     sm:shadow-lg
   `;
 
-  // 2. Estilo LIMPIO para la Modal (Sin sombra, sin fondo, ancho 100%)
   const modalStyles = `
     flex
     flex-col
@@ -91,11 +88,9 @@ function LoginForm({ onSuccess }) {
         error={errors.password?.message}
       />
 
-      {/* Botones */}
       <div className='flex flex-col gap-3 mt-2'>
         <Button type='submit'>Iniciar Sesión</Button>
 
-        {/* El botón de registro SOLO se muestra en la página normal, no en la modal */}
         {!onSuccess && (
           <Button variant='secondary' onClick={() => navigate('/signup')}>
             Registrar Usuario

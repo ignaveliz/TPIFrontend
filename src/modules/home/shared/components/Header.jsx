@@ -28,7 +28,6 @@ function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }
     else navigate('/signup');
   };
 
-  // ESTILOS: Links para Desktop (Píldora horizontal)
   const getDesktopLinkStyles = ({ isActive }) => (
     `
       block px-4 py-2 font-medium rounded-full transition text-center
@@ -39,7 +38,6 @@ function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }
     `
   );
 
-  // ESTILOS: Links para Sidebar Móvil (Bloque tipo botón)
   const getSidebarLinkStyles = ({ isActive }) => (
     `
       block px-4 py-3 font-medium rounded-xl transition text-left mb-2 text-lg
@@ -52,12 +50,10 @@ function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }
 
   return (
     <>
-      {/* --- HEADER PRINCIPAL (Siempre visible) --- */}
       <header className="bg-white shadow-sm sm:col-span-2 sticky top-0 z-40">
         <div className="px-4 py-3 md:px-6">
           <div className="flex items-center justify-between gap-3 md:gap-6">
 
-            {/* 1. IZQUIERDA: Logo + Nav Desktop */}
             <div className="flex items-center gap-6 shrink-0">
               <span className="text-purple-600 shrink-0">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -71,7 +67,6 @@ function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }
               </nav>
             </div>
 
-            {/* 2. CENTRO: Barra de Búsqueda */}
             <div className='flex-1 max-w-2xl'>
               <div className="relative flex items-center w-full">
                 <input
@@ -96,7 +91,6 @@ function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }
               </div>
             </div>
 
-            {/* 3. DERECHA: Auth Desktop + Hamburguesa Móvil */}
             <div className="flex items-center shrink-0">
               <div className="hidden md:flex items-center gap-3">
                 {isAuthenticated ? (
@@ -109,7 +103,6 @@ function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }
                 )}
               </div>
 
-              {/* Botón Hamburguesa */}
               <button
                 className="md:hidden ml-2 text-gray-600 hover:bg-gray-100 p-2 rounded-md focus:outline-none"
                 onClick={() => setIsMenuOpen(true)}
@@ -123,7 +116,6 @@ function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }
         </div>
       </header>
 
-      {/* --- SIDEBAR MÓVIL (DRAWER) --- */}
       {isMenuOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-50 md:hidden transition-opacity"

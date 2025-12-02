@@ -51,16 +51,13 @@ function CartPage() {
   const totalItems = cartItems.reduce((acc, item) => acc + item.quantity, 0);
   const totalPrice = cartItems.reduce((acc, item) => acc + (item.currentUnitPrice * item.quantity), 0);
 
-  // CAMBIO PRINCIPAL: Validación de Stock en handleQuantity
   const handleQuantity = (id, delta) => {
     setCartItems(current => current.map(item => {
       if (item.id === id) {
         const proposedQuantity = item.quantity + delta;
 
-        // 1. Validar límite inferior: No permitir menos de 1
         if (proposedQuantity < 1) return item;
 
-        // 2. Validar límite superior: No permitir más del stock disponible
         if (proposedQuantity > item.stockQuantity) return item;
 
         return { ...item, quantity: proposedQuantity };
@@ -176,7 +173,6 @@ function CartPage() {
                       {item.quantity}
                     </span>
 
-                    {/* CAMBIO: Botón "+" deshabilitado si quantity >= stockQuantity */}
                     <button
                       onClick={() => handleQuantity(item.id, 1)}
                       className="font-bold text-xl px-2 text-gray-600 hover:text-black disabled:opacity-30 mr-2"

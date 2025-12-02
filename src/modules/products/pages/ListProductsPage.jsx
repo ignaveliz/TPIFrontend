@@ -63,7 +63,6 @@ function ListProductsPage() {
         <div className='flex justify-between items-center mb-3'>
           <h1 className='text-3xl'>Productos</h1>
 
-          {/* BOTÓN MÓVIL (+): Antes no tenía onClick */}
           <Button
             className='h-11 w-11 rounded-2xl sm:hidden flex items-center justify-center'
             onClick={() => navigate('/admin/products/create')}
@@ -74,7 +73,6 @@ function ListProductsPage() {
             </svg>
           </Button>
 
-          {/* BOTÓN ESCRITORIO */}
           <Button
             className='hidden sm:block'
             onClick={() => navigate('/admin/products/create')}

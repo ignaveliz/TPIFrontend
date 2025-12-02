@@ -28,12 +28,11 @@ function CreateProductForm() {
 
   const onValid = async (formData) => {
     try {
-      setErrorBackendMessage(''); // Limpiar errores previos
+      setErrorBackendMessage('');
       await createProduct(formData);
       navigate('/admin/products');
     } catch (error) {
       if (error.response?.data?.code) {
-        // Buscamos si existe un mensaje amigable para el código, sino usamos el detalle técnico
         const friendlyMessage = frontendErrorMessage[error.response.data.code]
                                 || error.response.data.detail
                                 || 'Ocurrió un error inesperado.';
@@ -58,7 +57,6 @@ function CreateProductForm() {
         '
         onSubmit={handleSubmit(onValid)}
       >
-        {/* SKU: Obligatorio */}
         <Input
           label='SKU'
           error={errors.sku?.message}
@@ -67,14 +65,12 @@ function CreateProductForm() {
           })}
         />
 
-        {/* Código Único: Opcional (sin validación required) */}
         <Input
           label='Código Único'
           error={errors.cui?.message}
           {...register('cui')}
         />
 
-        {/* Nombre: Obligatorio */}
         <Input
           label='Nombre'
           error={errors.name?.message}
@@ -83,13 +79,11 @@ function CreateProductForm() {
           })}
         />
 
-        {/* Descripción: Opcional (sin cambios) */}
         <Input
           label='Descripción'
           {...register('description')}
         />
 
-        {/* Precio: Mayor a 0 */}
         <Input
           label='Precio'
           error={errors.price?.message}
@@ -101,7 +95,6 @@ function CreateProductForm() {
           })}
         />
 
-        {/* Stock: Mayor a 0 */}
         <Input
           label='Stock'
           error={errors.stock?.message}
@@ -116,7 +109,6 @@ function CreateProductForm() {
           <Button type='submit' className='w-full sm:w-fit'>Crear Producto</Button>
         </div>
 
-        {/* Renderizado de errores del Backend */}
         {errorBackendMessage && (
           <div className='mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
             <p>{errorBackendMessage}</p>

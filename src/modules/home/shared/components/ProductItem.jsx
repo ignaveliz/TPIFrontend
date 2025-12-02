@@ -4,7 +4,6 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
   const [quantity, setQuantity] = useState(1);
   const [qtyInCart, setQtyInCart] = useState(0);
 
-  // 1. Función para obtener cuánto tenemos ya en el carrito
   const getQtyInCart = () => {
     try {
       const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -18,17 +17,14 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
     }
   };
 
-  // 2. Cargar la cantidad inicial al montar el componente
   useEffect(() => {
     setQtyInCart(getQtyInCart());
   }, [product.id]);
 
-  // 3. Calculamos el stock REAL disponible para agregar (Total - Lo que ya tengo)
   const availableStock = product.stockQuantity - qtyInCart;
   const isOutOfStock = availableStock <= 0;
 
   const handleIncrement = () => {
-    // Validamos contra availableStock en lugar del stock total
     setQuantity(prev => (prev < availableStock ? prev + 1 : prev));
   };
 
@@ -39,7 +35,6 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
   const addToCart = () => {
     if (isOutOfStock) return;
 
-    // Validación extra: No permitir agregar más de lo disponible
     if (quantity > availableStock) {
       alert(`Solo quedan ${availableStock} unidades disponibles.`);
 
@@ -58,9 +53,8 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
     localStorage.setItem('cart', JSON.stringify(storedCart));
     console.log(`Se agregaron ${quantity} unidad(es) de ${product.name} al carrito.`);
 
-    // 4. Actualizamos el estado local para reflejar el nuevo stock disponible inmediatamente
     setQtyInCart(prev => prev + quantity);
-    setQuantity(1); // Reseteamos el contador a 1
+    setQuantity(1);
 
   };
 
@@ -108,7 +102,6 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
               <button
                 onClick={handleIncrement}
                 className="text-gray-500 hover:text-black font-bold text-lg disabled:opacity-30 disabled:cursor-not-allowed"
-                // Validamos contra availableStock
                 disabled={quantity >= availableStock || isOutOfStock}
               >
                 +
@@ -131,7 +124,6 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
           </div>
         </div>
 
-        {/* Mensajes de Estado */}
         <div className="text-right mt-2 min-h-[1.25rem]">
           {isOutOfStock ? (
             <span className="text-[10px] text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded inline-block shadow-sm border border-red-100">

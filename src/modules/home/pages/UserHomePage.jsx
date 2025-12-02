@@ -13,7 +13,6 @@ function UserHomePage() {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Estados para las Modales
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
 
@@ -47,12 +46,10 @@ function UserHomePage() {
   return (
     <div className='h-full grid grid-cols-1 grid-rows-[auto_1fr] bg-gray-50'>
 
-      {/* MODAL LOGIN */}
       <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
         <LoginForm onSuccess={() => setShowLoginModal(false)} />
       </Modal>
 
-      {/* MODAL REGISTRO (Nuevo) - Rol por defecto "Usuario" */}
       <Modal isOpen={showRegisterModal} onClose={() => setShowRegisterModal(false)}>
         <RegisterForm
           onSuccess={() => setShowRegisterModal(false)}
@@ -60,7 +57,6 @@ function UserHomePage() {
         />
       </Modal>
 
-      {/* Pasamos los handlers al Header para que los use en lugar de navegar */}
       <Header
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}

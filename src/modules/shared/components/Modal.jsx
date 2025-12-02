@@ -4,13 +4,10 @@ function Modal({ isOpen, onClose, children }) {
   if (!isOpen) return null;
 
   return (
-    // Overlay oscuro
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
 
-      {/* Tarjeta del Modal: Aquí definimos el fondo blanco y la sombra del popup */}
       <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md p-6">
 
-        {/* Botón Cerrar (X) */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
@@ -21,7 +18,6 @@ function Modal({ isOpen, onClose, children }) {
           </svg>
         </button>
 
-        {/* Contenido (LoginForm limpio) */}
         <div className="mt-4">
           {children}
         </div>
