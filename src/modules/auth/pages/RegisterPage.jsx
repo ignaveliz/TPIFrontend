@@ -6,9 +6,11 @@ function RegisterPage() {
       flex
       flex-col
       justify-center
-      h-[100dvh]
+      min-h-[100dvh]
+      py-10
       bg-neutral-100
       sm:items-center
+      sm:py-0
     '>
       <RegisterForm />
     </div>);
