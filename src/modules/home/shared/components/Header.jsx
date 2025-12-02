@@ -100,11 +100,11 @@ function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }
             <div className="flex items-center shrink-0">
               <div className="hidden md:flex items-center gap-3">
                 {isAuthenticated ? (
-                  <Button className="font-medium px-5 py-2 rounded-lg" onClick={handleLogout}>Salir</Button>
+                  <Button className="font-medium px-5 py-2 rounded-lg" onClick={handleLogout}>Cerrar Sesión</Button>
                 ) : (
                   <>
-                    <Button className="bg-transparent text-gray-600 hover:bg-gray-100 font-medium px-4 py-2" onClick={handleLoginClick}>Ingresar</Button>
-                    <Button className="bg-purple-600 text-white hover:bg-purple-700 font-medium px-4 py-2" onClick={handleRegisterClick}>Registro</Button>
+                    <Button className="bg-purple-200 text-gray-700 hover:bg-purple-300 font-medium px-4 py-2" onClick={handleLoginClick}>Iniciar Sesión</Button>
+                    <Button className="bg-purple-200 text-gray-700 hover:bg-purple-300 font-medium px-4 py-2" onClick={handleRegisterClick}>Registrarse</Button>
                   </>
                 )}
               </div>
@@ -165,7 +165,7 @@ function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }
           {isAuthenticated ? (
             <button
               onClick={handleLogout}
-              className="w-full flex justify-center items-center px-5 py-2 rounded-xl bg-purple-100 text-purple-700 font-bold hover:bg-purple-200 transition text-center"
+              className="w-full flex justify-center items-center text-2xl px-5 py-2 rounded-xl bg-purple-100 text-gray-700 font-bold hover:bg-purple-200 transition text-center"
             >
               Cerrar sesión
             </button>
@@ -173,13 +173,13 @@ function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleLoginClick}
-                className="w-full text-center px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200"
+                className="w-full text-center text-2xl px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200"
               >
                 Iniciar Sesión
               </button>
               <button
                 onClick={handleRegisterClick}
-                className="w-full text-center px-4 py-2 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700"
+                className="w-full text-center text-2xl px-4 py-2 rounded-xl bg-purple-200 text-gray-700 font-bold hover:bg-purple-700"
               >
                 Registrarse
               </button>

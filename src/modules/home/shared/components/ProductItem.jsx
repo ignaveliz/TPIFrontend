@@ -102,7 +102,7 @@ function ProductItem({ imageAspect = 'aspect-square', product }) {
       <div className="text-right mt-1 h-4"> {/* Altura fija para evitar saltos */}
         {isOutOfStock ? (
           <span className="text-[10px] text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded">
-            ¡Producto Agotado!
+            Producto Agotado
           </span>
         ) : quantity >= maxStock ? (
           <span className="text-[10px] text-orange-500 font-medium">
