@@ -1,9 +1,15 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import Button from '../../../shared/components/Button';
+import useAuth from '../../../auth/hook/useAuth';
 
 function Header({ searchTerm, setSearchTerm, handleSearch }) {
-
   const navigate = useNavigate();
+  const { isAuthenticated, singout } = useAuth();
+
+  const handleLogout = () => {
+    singout();
+    navigate('/'); // CAMBIO: Ahora redirige al Home en lugar de al Login
+  };
 
   const getLinkStyles = ({ isActive }) => (
     `
@@ -50,12 +56,11 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
       </div>
 
       {/* GRUPO CENTRO: Buscador */}
-      {/* flex-1 hace que ocupe el espacio disponible, max-w limita el ancho */}
       <div className='flex-1 max-w-2xl px-4'>
         <div className="relative flex items-center w-full">
           <input
             value={searchTerm}
-            onChange={(evt) => setSearchTerm(evt.target.value)}
+            onChange={(evt) => setSearchTerm && setSearchTerm(evt.target.value)}
             type="text"
             placeholder='Search'
             className='
@@ -80,22 +85,32 @@ function Header({ searchTerm, setSearchTerm, handleSearch }) {
         </div>
       </div>
 
-      {/* GRUPO DERECHA: Botones de Auth */}
+      {/* GRUPO DERECHA: Botones de Auth CONDICIONALES */}
       <div className="flex items-center gap-3">
-        <Button
-          className="bg-purple-100 text-gray-700 hover:bg-purple-200 border-none font-medium px-5 py-2 rounded-lg transition-colors"
-          onClick={() => navigate('/login')}>
-            Iniciar Sesión
-        </Button>
-        <Button
-          className="bg-gray-100 text-gray-700 hover:bg-gray-300 border-none font-medium px-5 py-2 rounded-lg transition-colors"
-          onClick={() => navigate('/signup')}>
-            Registrarse
-        </Button>
+        {isAuthenticated ? (
+          // CAMBIO: Estilo estándar (morado) igual que en Dashboard
+          <Button
+            className="font-medium px-5 py-2 rounded-lg"
+            onClick={handleLogout}>
+              Cerrar Sesión
+          </Button>
+        ) : (
+          <>
+            <Button
+              className="bg-purple-100 text-gray-700 hover:bg-purple-200 border-none font-medium px-5 py-2 rounded-lg transition-colors"
+              onClick={() => navigate('/login')}>
+                Iniciar Sesión
+            </Button>
+            <Button
+              className="bg-gray-100 text-gray-700 hover:bg-gray-300 border-none font-medium px-5 py-2 rounded-lg transition-colors"
+              onClick={() => navigate('/signup')}>
+                Registrarse
+            </Button>
+          </>
+        )}
       </div>
 
     </header>
-
   );
 }
 
