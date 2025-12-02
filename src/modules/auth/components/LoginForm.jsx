@@ -6,7 +6,8 @@ import Button from '../../shared/components/Button';
 import useAuth from '../hook/useAuth';
 import { frontendErrorMessage } from '../helpers/backendError';
 
-function LoginForm() {
+// Aceptamos la prop opcional onSuccess
+function LoginForm({ onSuccess }) {
   const [errorMessage, setErrorMessage] = useState('');
   const {
     register,
@@ -15,7 +16,6 @@ function LoginForm() {
   } = useForm({ defaultValues: { username: '', password: '' } });
 
   const navigate = useNavigate();
-
   const { singin } = useAuth();
 
   const onValid = async (formData) => {
@@ -28,12 +28,21 @@ function LoginForm() {
         return;
       }
 
-      if (role === 'Admin' || role === 'Tester') {
-        navigate('/admin/home');
+      // LÓGICA MODIFICADA:
+      // Si existe onSuccess (es decir, estamos en el modal), lo ejecutamos y no navegamos.
+      if (onSuccess) {
+        onSuccess();
 
         return;
       }
-      else navigate('/');
+
+      // Comportamiento normal (Página de Login)
+      if (role === 'Admin' || role === 'Tester') {
+        navigate('/admin/home');
+      } else {
+        navigate('/');
+      }
+
     } catch (error) {
       if (error?.response?.data?.code) {
         setErrorMessage(frontendErrorMessage[error?.response?.data?.code]);
@@ -47,35 +56,38 @@ function LoginForm() {
     <form className='
         flex
         flex-col
-        gap-20
+        gap-8
         bg-white
         p-8
-        sm:w-md
-        sm:gap-4
-        sm:rounded-lg
-        sm:shadow-lg
+        w-full
+        rounded-lg
       '
     onSubmit={handleSubmit(onValid)}
     >
+      {/* Título opcional para que parezca el diseño de la imagen */}
+      <h2 className="text-2xl font-bold text-gray-800">Iniciar Sesión</h2>
+
       <Input
         label='Usuario'
-        { ...register('username', {
-          required: 'Usuario es obligatorio',
-        }) }
+        { ...register('username', { required: 'Usuario es obligatorio' }) }
         error={errors.username?.message}
       />
       <Input
         label='Contraseña'
-        { ...register('password', {
-          required: 'Contraseña es obligatorio',
-        }) }
+        { ...register('password', { required: 'Contraseña es obligatorio' }) }
         type='password'
         error={errors.password?.message}
       />
 
-      <Button type='submit'>Iniciar Sesión</Button>
-      <Button variant='secondary' onClick={() => navigate('/signup')}>Registrar Usuario</Button>
-      {errorMessage && <p className='text-red-500'>{errorMessage}</p>}
+      <div className="flex flex-col gap-3 pt-4">
+        <Button type='submit'>Iniciar Sesión</Button>
+        {/* Solo mostramos el botón de registro si NO estamos en el modal, o lo dejamos opcional */}
+        {!onSuccess && (
+          <Button variant='secondary' onClick={() => navigate('/signup')}>Registrar Usuario</Button>
+        )}
+      </div>
+
+      {errorMessage && <p className='text-red-500 text-center'>{errorMessage}</p>}
     </form>
   );
 };
