@@ -28,14 +28,17 @@ function CreateProductForm() {
 
   const onValid = async (formData) => {
     try {
+      setErrorBackendMessage(''); // Limpiar errores previos
       await createProduct(formData);
-
       navigate('/admin/products');
     } catch (error) {
       if (error.response?.data?.code) {
-        const errorMessage = frontendErrorMessage[error.response.data.code];
+        // Buscamos si existe un mensaje amigable para el código, sino usamos el detalle técnico
+        const friendlyMessage = frontendErrorMessage[error.response.data.code]
+                                || error.response.data.detail
+                                || 'Ocurrió un error inesperado.';
 
-        setErrorBackendMessage(errorMessage);
+        setErrorBackendMessage(friendlyMessage);
       } else {
         setErrorBackendMessage('Contactar a Soporte');
       }
@@ -55,6 +58,7 @@ function CreateProductForm() {
         '
         onSubmit={handleSubmit(onValid)}
       >
+        {/* SKU: Obligatorio */}
         <Input
           label='SKU'
           error={errors.sku?.message}
@@ -62,13 +66,15 @@ function CreateProductForm() {
             required: 'SKU es requerido',
           })}
         />
+
+        {/* Código Único: Opcional (sin validación required) */}
         <Input
           label='Código Único'
           error={errors.cui?.message}
-          {...register('cui', {
-            required: 'Código Único es requerido',
-          })}
+          {...register('cui')}
         />
+
+        {/* Nombre: Obligatorio */}
         <Input
           label='Nombre'
           error={errors.name?.message}
@@ -76,35 +82,46 @@ function CreateProductForm() {
             required: 'Nombre es requerido',
           })}
         />
+
+        {/* Descripción: Opcional (sin cambios) */}
         <Input
           label='Descripción'
           {...register('description')}
         />
+
+        {/* Precio: Mayor a 0 */}
         <Input
           label='Precio'
           error={errors.price?.message}
           type='number'
+          step="0.01"
           {...register('price', {
-            min: {
-              value: 0,
-              message: 'No puede tener un precio negativo',
-            },
+            required: 'El precio es requerido',
+            validate: (value) => parseFloat(value) > 0 || 'El precio debe ser mayor a 0',
           })}
         />
+
+        {/* Stock: Mayor a 0 */}
         <Input
           label='Stock'
           error={errors.stock?.message}
+          type='number'
           {...register('stock', {
-            min: {
-              value: 0,
-              message: 'No puede tener un stock negativo',
-            },
+            required: 'El stock es requerido',
+            validate: (value) => parseInt(value) > 0 || 'El stock debe ser mayor a 0',
           })}
         />
+
         <div className='sm:text-end'>
           <Button type='submit' className='w-full sm:w-fit'>Crear Producto</Button>
         </div>
-        {errorBackendMessage && <span className='text-red-500'>{errorBackendMessage}</span>}
+
+        {/* Renderizado de errores del Backend */}
+        {errorBackendMessage && (
+          <div className='mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
+            <p>{errorBackendMessage}</p>
+          </div>
+        )}
       </form>
     </Card>
   );
