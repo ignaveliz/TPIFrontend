@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Button from '../../shared/components/Button';
 import Card from '../../shared/components/Card';
 import { getProducts } from '../services/list';
+import Pagination from '../../shared/components/Pagination';
+import SearchBar from '../../shared/components/SearchBar';
 
 const productStatus = {
   ALL: 'all',
@@ -82,20 +84,13 @@ function ListProductsPage() {
         </div>
 
         <div className='flex flex-col sm:flex-row gap-4'>
-          <div className='flex items-center gap-3'>
-            <input
-              value={searchTerm}
-              onChange={(evt) => setSearchTerm(evt.target.value)}
-              type="text"
-              placeholder='Buscar'
-              className='text-[1.3rem] w-full'
-            />
-            <Button className='h-11 w-11 flex items-center justify-center' onClick={handleSearch}>
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
-              </svg>
-            </Button>
-          </div>
+          <SearchBar
+            value={searchTerm}
+            onChange={setSearchTerm}
+            onSearch={handleSearch}
+            placeholder="Buscar productos..."
+            className="w-full"
+          />
           <select
             onChange={evt => setStatus(evt.target.value == productStatus.ALL ? productStatus.ALL : evt.target.value == productStatus.ENABLED ? true : productStatus.DISABLED ? false : productStatus.DISABLED)}
             className='text-[1.3rem]'
@@ -126,37 +121,16 @@ function ListProductsPage() {
         }
       </div>
 
-      <div className='flex justify-center items-center mt-3'>
-        <button
-          disabled={pageNumber === 1}
-          onClick={() => setPageNumber(pageNumber - 1)}
-          className='bg-gray-200 disabled:bg-gray-100 px-3 py-1 rounded'
-        >
-          Atras
-        </button>
-        <span className="mx-3">{pageNumber} / {totalPages}</span>
-        <button
-          disabled={ pageNumber >= totalPages }
-          onClick={() => setPageNumber(pageNumber + 1)}
-          className='bg-gray-200 disabled:bg-gray-100 px-3 py-1 rounded'
-        >
-          Siguiente
-        </button>
-
-        <select
-          value={pageSize}
-          onChange={evt => {
-            setPageNumber(1);
-            setPageSize(Number(evt.target.value));
-          }}
-          className='ml-3 p-1 border rounded'
-        >
-          <option value="2">2</option>
-          <option value="10">10</option>
-          <option value="15">15</option>
-          <option value="20">20</option>
-        </select>
-      </div>
+      <Pagination
+        pageNumber={pageNumber}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        onPageChange={setPageNumber}
+        onPageSizeChange={(newSize) => {
+          setPageNumber(1);
+          setPageSize(newSize);
+        }}
+      />
     </div>
   );
 }
