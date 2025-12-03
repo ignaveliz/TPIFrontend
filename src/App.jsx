@@ -4,13 +4,13 @@ import LoginPage from './modules/auth/pages/LoginPage';
 import Dashboard from './modules/templates/components/Dashboard';
 import ProtectedRoute from './modules/auth/components/ProtectedRoute';
 import ListOrdersPage from './modules/orders/pages/ListOrdersPage';
-import Home from './modules/home/pages/Home';
+import Home from './modules/admin/pages/Home';
 import ListProductsPage from './modules/products/pages/ListProductsPage';
 import CreateProductPage from './modules/products/pages/CreateProductPage';
 import RegisterPage from './modules/auth/pages/RegisterPage';
 import UnauthorizedPage from './modules/auth/pages/UnauthorizedPage';
-import UserHomePage from './modules/home/pages/UserHomePage';
-import CartPage from './modules/home/pages/CartPage';
+import UserHomePage from './modules/shop/pages/UserHomePage';
+import CartPage from './modules/cart/pages/CartPage';
 
 function App() {
   const router = createBrowserRouter([

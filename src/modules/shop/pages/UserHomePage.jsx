@@ -1,9 +1,9 @@
-import Card from '../../shared/components/Card.jsx';
-import Header from '../shared/components/Header.jsx';
-import ProductItem from '../shared/components/ProductItem.jsx';
-import Modal from '../../shared/components/Modal.jsx';
+import Card from '../../shared/components/Card';
+import Header from '../../shared/components/Header';
+import ProductItem from '../components/ProductItem';
+import Modal from '../../shared/components/Modal';
 import LoginForm from '../../auth/components/LoginForm.jsx';
-import RegisterForm from '../../auth/components/RegisterForm.jsx'; // Importamos RegisterForm
+import RegisterForm from '../../auth/components/RegisterForm.jsx';
 import { getAll } from '../../products/services/list.js';
 import { useEffect, useState } from 'react';
 

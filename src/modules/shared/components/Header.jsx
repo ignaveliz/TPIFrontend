@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import Button from '../../../shared/components/Button';
-import useAuth from '../../../auth/hook/useAuth';
+import Button from './Button';
+import useAuth from '../../auth/hook/useAuth';
 
 function Header({ searchTerm, setSearchTerm, handleSearch, onLogin, onRegister }) {
   const navigate = useNavigate();
