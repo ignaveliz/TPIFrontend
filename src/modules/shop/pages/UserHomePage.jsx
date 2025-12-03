@@ -1,9 +1,8 @@
-import Card from '../../shared/components/Card';
 import Header from '../../shared/components/Header';
-import ProductItem from '../components/ProductItem';
 import Modal from '../../shared/components/Modal';
 import LoginForm from '../../auth/components/LoginForm.jsx';
 import RegisterForm from '../../auth/components/RegisterForm.jsx';
+import ProductGrid from '../components/ProductGrid.jsx';
 import { getAll } from '../../products/services/list.js';
 import { useEffect, useState } from 'react';
 
@@ -65,31 +64,11 @@ function UserHomePage() {
         onRegister={() => setShowRegisterModal(true)}
       />
 
-      <div className='grid grid-cols-1 p-4 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-        {loading ? (
-          <span className="col-span-full text-center py-10">Cargando productos...</span>
-        ) : filteredProducts.length === 0 ? (
-          <span className="col-span-full text-center py-10 text-gray-500">No se encontraron productos.</span>
-        ) : (
-          filteredProducts.map((product, index) => {
-            const positionInPattern = index % 6;
-            const isWide = positionInPattern === 4 || positionInPattern === 5;
-
-            return (
-              <Card
-                key={product.id}
-                className={isWide ? 'sm:col-span-2' : ''}
-              >
-                <ProductItem
-                  product={product}
-                  imageAspect={isWide ? 'aspect-square sm:aspect-[2/1]' : 'aspect-square'}
-                  onLoginRequired={() => setShowLoginModal(true)}
-                />
-              </Card>
-            );
-          })
-        )}
-      </div>
+      <ProductGrid
+        loading={loading}
+        products={filteredProducts}
+        onLoginRequired={() => setShowLoginModal(true)}
+      />
     </div>
   );
 }
