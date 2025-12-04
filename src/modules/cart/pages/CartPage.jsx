@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../shared/components/Header';
-import Card from '../../shared/components/Card';
-import Button from '../../shared/components/Button';
 import Modal from '../../shared/components/Modal';
 import LoginForm from '../../auth/components/LoginForm';
 import RegisterForm from '../../auth/components/RegisterForm';
